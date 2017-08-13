@@ -1,38 +1,58 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace MapOfTheCity {
-	public class MapOfCity {
+namespace MapOfTheCity
+{
+    public class MapOfCity
+    {
+        public List<Place> Places;
 
-		public List<Place> Places;
+        public MapOfCity() {
+            Places = new List<Place>();
+        }
 
-		public MapOfCity() {
-			Places = new List<Place>();
-		}
+        public Place GetMostPopularPlace()
+        {
+            Place mostPopularPlace = Places
+                                        .Where(t => t is IRatingable)
+                                        .Select(t => (IRatingable)t)
+                                        .OrderByDescending(t => t.Rating)
+                                        .Select(t => (Place)t)
+                                        .FirstOrDefault();
+            return mostPopularPlace;
+        }
 
-		// Краще не передавати сюди нічого, оскільки в тебе в класі є колекція місць, просто вибирати з них ті, які мають рейтинг
-		// Також краще не виводити результат в цьому методі. Нехай метод повертає об'єкт типу Place,
-		// а той хто буде викликати цей меод вже собі вирішить що робити з результатом і куди його виводити.
-		// Тому що можливо буде потреба зберегти таке місце в файл, прийдеться писати нови метод
-		public void GetMostPopularPlace(List<IRatingable> places) {
-			Place mostPopularPlace = places
-				.OrderByDescending(t => t.Rating)
-				.Select(t => (Place)t)
-				.FirstOrDefault();
+        public PlaceToEat GetNearestPlaceToEat(Place place)
+        {
+            return Places
+                 .Where(t => t is PlaceToEat)
+                 .Select(t => (PlaceToEat)t)
+                 .OrderByDescending(t => t.GetDistance(place))
+                 .FirstOrDefault();
+        }
 
-			Console.WriteLine(mostPopularPlace.Coordinates);
-		}
+        public List<IRatingable> GetPlacesWithRating()
+        {
+            return Places
+                    .Where(t => t is IRatingable)
+                    .Select(t => (IRatingable)t)
+                    .ToList();
+        }
 
-		public void SetRating(IRatingable place, float newRating) {
-			// Тут place завжди IRatingable, тому що тип параметру такий.
-			// Тобто ця перевірка завжди буде повертати true і немає сенсу щось перевіряти.
-			// Також ти просто навсього не зможеш передати сюди об'єкт класу, який не реалізовує цей інтерфейс.
-			// Тобто цей метод безпечний по відношенню до типу
-			if (place is IRatingable)
-				place.Rating = newRating;
-			else
-				throw new Exception("Can't set rating for this place");
-		}
-	}
+        public List<T> GetPlacesOfType<T>() where T : Place
+        {
+            return Places
+                    .Where(t => t is T)
+                    .Select(t => (T)t)
+                    .ToList();
+        }
+
+        public List<IRatingable> GetSortedListOfPlacesByRating() {
+            return Places
+                        .Where(t => t is IRatingable)
+                        .Select(t => (IRatingable)t)
+                        .OrderByDescending(t => t.Rating)
+                        .ToList();
+        }
+    }
 }

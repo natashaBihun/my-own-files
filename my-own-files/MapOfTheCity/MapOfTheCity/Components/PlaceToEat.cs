@@ -1,50 +1,51 @@
 ﻿using System;
+using System.Collections.Generic;
 
-namespace MapOfTheCity {
-	public class PlaceToEat : Place, IRatingable {
+namespace MapOfTheCity
+{
+    public class PlaceToEat :PlaceWithRating, ISchedulable
+    {
+        private const string _placeToEat = "Places To Eat";
 
-		private const string _placeToEat = "Places To Eat";
-		private float _rating;
+        private int _openFrom;
+        private int _openTo;
 
-		public string ContactInfo;
-		public string Schedule;
-		public override string TypeOfPlace { get { return _placeToEat; } }
+        public string ContactInfo;
+        public override string TypeOfPlace { get { return _placeToEat; } }
 
-		public float Rating {
-			get {
-				return _rating;
-			}
-			set {
-				if (value > 0 && value <= 5)
-					_rating = value;
-				else
-					throw new Exception("Invalid Rating");
-			}
-		}
+        public int OpenFrom {
+            get { return _openFrom; }
+            set {
+                if (value >= 0 && value <= 24) _openFrom = value;
+                else throw new Exception("Wrong hours");
+            }
+        }
+        public int OpenTo
+        {
+            get { return _openTo; }
+            set
+            {
+                if (value >= 0 && value <= 24) _openTo = value;
+                else throw new Exception("Wrong hours");
+            }
+        }
 
-		public PlaceToEat(string name, double latitude, double longitude, string contactInfo, string schedule, float rating)
-			: base(name, latitude, longitude) {
+        public PlaceToEat(string name, double x, double y, string contactInfo, int openFrom, int openTo, float rating) 
+            : base(name, x, y, rating) {
 
-			ContactInfo = IsStringDataNotNull(contactInfo);
-			Schedule = IsStringDataNotNull(schedule);
-			Rating = rating;
-		}
+            ContactInfo = contactInfo.EmptyIfNull();
+            OpenFrom = openFrom;
+            OpenTo = openTo;
+        }
 
-		public override string ToString() {
-			return base.ToString() + string.Format($"{ContactInfo} \t {Schedule} \t {Rating}");
-		}
-
-		// Не дуже гарна назва. Краще було б назвати EmptyIfNull або шось цього типу
-		// Можна написати як метод розширення і використовувати так
-		// string s = null;
-		// string s1 = s.EmptyIfNull();
-		private string IsStringDataNotNull(string value) {
-			if (value != null) {
-				return value;
-			} else {
-				return "";
-			}
-			// Можна ще так return value ?? string.Empty;
-		}
-	}
+        public bool IsOpen()
+        {
+            if (DateTime.Now.Hour >= OpenFrom && DateTime.Now.Hour < OpenTo) return true;
+            else return false;
+        }
+        public override string ToString()
+        {
+            return base.ToString() + string.Format($"{ContactInfo} \t {OpenFrom} - {OpenTo}");
+        }
+    }
 }
